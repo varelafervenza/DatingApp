@@ -30,14 +30,14 @@ namespace DatingApp.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserForRegisterDTO userForRegister)
         {
-            userForRegister.UserName = userForRegister.UserName.ToLower();
+            userForRegister.Username = userForRegister.Username.ToLower();
 
-            if (await repository.UserExists(userForRegister.UserName))
+            if (await repository.UserExists(userForRegister.Username))
                 return BadRequest("User already exists");
 
             var userToCreate = new User
             {
-                UserName = userForRegister.UserName
+                Username = userForRegister.Username
             };
 
             var createdUser = await repository.Register(userToCreate, userForRegister.Password);
@@ -49,7 +49,7 @@ namespace DatingApp.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDTO userForLogin)
         {
-            var userForRepo = await repository.Login(userForLogin.UserName.ToLower(), userForLogin.Password);
+            var userForRepo = await repository.Login(userForLogin.Username.ToLower(), userForLogin.Password);
 
             if (userForRepo == null)
                 return Unauthorized();
@@ -57,7 +57,7 @@ namespace DatingApp.API.Controllers
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, userForRepo.Id.ToString()),
-                new Claim(ClaimTypes.Name, userForRepo.UserName)
+                new Claim(ClaimTypes.Name, userForRepo.Username)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8
