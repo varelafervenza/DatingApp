@@ -4,7 +4,7 @@ import * as alertify from 'alertifyjs';
 @Injectable({
   providedIn: 'root'
 })
-export class AlertifyServiceService {
+export class AlertifyService {
 
 constructor() { }
 
