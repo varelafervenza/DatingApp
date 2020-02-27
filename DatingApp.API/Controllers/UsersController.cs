@@ -13,15 +13,15 @@ namespace DatingApp.API.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UsersController : ControllerBase
     {
         private readonly IDatingRepository repository;
         private readonly IMapper mapper;
 
-        public UserController(IDatingRepository repo, IMapper map)
+        public UsersController(IDatingRepository repository, IMapper mapper)
         {
-            this.repository = repo;
-            this.mapper = map;
+            this.repository = repository;
+            this.mapper = mapper;
         }
 
 
