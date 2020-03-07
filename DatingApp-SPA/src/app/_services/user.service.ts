@@ -14,7 +14,7 @@ export class UserService {
 
   constructor(private http: HttpClient) { }
 
-  getUsers(page?, itemsPerPage?, userParams?): Observable<PaginatedResult<User[]>> {
+  getUsers(page?, itemsPerPage?, userParams?, likeParam?): Observable<PaginatedResult<User[]>> {
     const paginationResult: PaginatedResult<User[]> = new PaginatedResult<User[]>();
 
     let params = new HttpParams();
@@ -31,6 +31,14 @@ export class UserService {
       params = params.append('orderBy', userParams.orderBy);
     }
 
+    if (likeParam != null && likeParam === 'Likers') {
+      params = params.append('likers', 'true');
+    }
+
+    if (likeParam != null && likeParam === 'Likees') {
+      params = params.append('likees', 'true');
+    }
+
     return this.http.get<User[]>(this.baseUrl + 'users', { observe: 'response', params })
       .pipe(
         map(response => {
@@ -45,20 +53,23 @@ export class UserService {
       );
   }
 
-  getUser(id): Observable<User> {
-    return this.http.get<User>(this.baseUrl  + 'users/' + id);
+  getUser(userId): Observable<User> {
+    return this.http.get<User>(this.baseUrl  + 'users/' + userId);
   }
 
-  updateUser(id: number, user: User) {
-    return this.http.put(this.baseUrl + 'users/' + id, user);
+  updateUser(userId: number, user: User) {
+    return this.http.put(this.baseUrl + 'users/' + userId, user);
   }
 
-  setMainPhoto(userId: number, id: number) {
-    return this.http.post(this.baseUrl + 'users/' + userId + '/photos/' + id + '/setMain', {});
+  setMainPhoto(userId: number, photoId: number) {
+    return this.http.post(this.baseUrl + 'users/' + userId + '/photos/' + photoId + '/setMain', {});
   }
 
-  deletePhoto(userId: number, id: number) {
-    return this.http.delete(this.baseUrl + 'users/' + userId + '/photos/' + id);
+  deletePhoto(userId: number, photoId: number) {
+    return this.http.delete(this.baseUrl + 'users/' + userId + '/photos/' + photoId);
   }
 
+  sendLike(userId: number, recipientId: number) {
+    return this.http.post(this.baseUrl + 'users/' + userId + '/like/' + recipientId, {});
+  }
 }

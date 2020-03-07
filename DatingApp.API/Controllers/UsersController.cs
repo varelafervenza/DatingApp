@@ -6,6 +6,7 @@ using AutoMapper;
 using DatingApp.API.Data;
 using DatingApp.API.Dtos;
 using DatingApp.API.Helpers;
+using DatingApp.API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -49,27 +50,55 @@ namespace DatingApp.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id}", Name = "GetUser")]
-        public async Task<IActionResult> GetUser(int id)
+        [HttpGet("{userId}", Name = "GetUser")]
+        public async Task<IActionResult> GetUser(int userId)
         {
-            var user = await repository.GetUser(id);
+            var user = await repository.GetUser(userId);
             var result = this.mapper.Map<UserForDetailedDTO>(user);
             
             return Ok(result);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, UserForUpdateDTO userForUpdateDTO){
-            if (id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+        [HttpPut("{userId}")]
+        public async Task<IActionResult> UpdateUser(int userId, UserForUpdateDTO userForUpdateDTO){
+            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Unauthorized();
             
-            var userFromRepo = await repository.GetUser(id);
+            var userFromRepo = await repository.GetUser(userId);
             mapper.Map(userForUpdateDTO, userFromRepo);
             
             if(await repository.SaveAll())
                 return NoContent();
             
-            throw new Exception($"Updating user {id} failed on save");
+            throw new Exception($"Updating user {userId} failed on save");
+        }
+
+        [HttpPost("{userId}/like/{recipientId}")]
+        public async Task<IActionResult> LikeUser(int userId, int recipientId)
+        {
+            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+                return Unauthorized();
+
+            var like = await repository.GetLike(userId, recipientId);
+
+            if (like != null)
+                return BadRequest("You already like this user");
+
+            if (await repository.GetUser(recipientId) == null)
+                return NotFound();
+
+            like = new Like 
+            {
+                LikerId = userId,
+                LikeeId = recipientId
+            };
+
+            repository.Add<Like>(like);
+
+            if (await repository.SaveAll())
+                return Ok();
+
+            return BadRequest("Failed to like user");
         }
        
     }
