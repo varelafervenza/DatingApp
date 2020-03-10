@@ -43,10 +43,10 @@ namespace DatingApp.API.Controllers
         }
 
         // USAMOS ATRIBUTO NAME PARA PODER UTILIZARLO EN EL METODO AddPhotoForUser CON CreatedAtRoute
-        [HttpGet("{id}", Name = "GetPhoto")]
-        public async Task<IActionResult> GetPhoto(int id)
+        [HttpGet("{photoId}", Name = "GetPhoto")]
+        public async Task<IActionResult> GetPhoto(int photoId)
         {
-            var photoFromRepo = await repository.GetPhoto(id);
+            var photoFromRepo = await repository.GetPhoto(photoId);
 
             var photo = mapper.Map<PhotoForReturnDTO>(photoFromRepo);
 
@@ -93,24 +93,24 @@ namespace DatingApp.API.Controllers
             if (await repository.SaveAll())
             {
                 var photoToReturn = mapper.Map<PhotoForReturnDTO>(photo);
-                return CreatedAtRoute("GetPhoto", new { userId = userId, id = photo.Id }, photoToReturn);
+                return CreatedAtRoute("GetPhoto", new { userId = userId, photoId = photo.Id }, photoToReturn);
             }
 
             return BadRequest("Could not add the photo");
         }
 
-        [HttpPost("{id}/setMain")]
-        public async Task<IActionResult> SetMainPhoto(int userId, int id)
+        [HttpPost("{photoId}/setMain")]
+        public async Task<IActionResult> SetMainPhoto(int userId, int photoId)
         {
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Unauthorized();
 
             var user = await repository.GetUser(userId);
 
-            if (!user.Photos.Any(p => p.Id == id))
+            if (!user.Photos.Any(p => p.Id == photoId))
                 return Unauthorized();
 
-            var photoFromRepo = await repository.GetPhoto(id);
+            var photoFromRepo = await repository.GetPhoto(photoId);
 
             if (photoFromRepo.IsMain)
                 return BadRequest("This is already the main photo");
@@ -126,18 +126,18 @@ namespace DatingApp.API.Controllers
             return BadRequest("Could not set photo to main"); 
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePhoto(int userId, int id)
+        [HttpDelete("{photoId}")]
+        public async Task<IActionResult> DeletePhoto(int userId, int photoId)
         {
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Unauthorized();
 
             var user = await repository.GetUser(userId);
 
-            if (!user.Photos.Any(p => p.Id == id))
+            if (!user.Photos.Any(p => p.Id == photoId))
                 return Unauthorized();
 
-            var photoFromRepo = await repository.GetPhoto(id);
+            var photoFromRepo = await repository.GetPhoto(photoId);
 
             if (photoFromRepo.IsMain)
                 return BadRequest("You cannot delete your main photo");
