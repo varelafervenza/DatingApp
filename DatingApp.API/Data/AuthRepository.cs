@@ -14,25 +14,25 @@ namespace DatingApp.API.Data
             context = dataContext;
         }
 
-        public async Task<User> Login(string userName, string password)
+        public async Task<User> Login(string username, string password)
         {
-            var user = await context.Users.Include(p => p.Photos).FirstOrDefaultAsync(x => x.Username == userName);
+            var user = await context.Users.Include(p => p.Photos).FirstOrDefaultAsync(x => x.UserName == username);
             
             if (user == null)
                 return null;
 
-            if(!VerifyPasswordHash(password, user))
-                return null;
+            // if(!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            //     return null;
 
             return user;
         }
 
-        private bool VerifyPasswordHash(string password, User user)
+        private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
         {
-            using(var hmac = new System.Security.Cryptography.HMACSHA512(user.PasswordSalt))
+            using(var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt))
            {
                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-               var passHash = user.PasswordHash;
+               var passHash = passwordHash;
 
                for (int i = 0; i < computedHash.Length; i++){
                    if (computedHash[i] != passHash[i]) return false;
@@ -47,8 +47,8 @@ namespace DatingApp.API.Data
             byte[] passwordHash, passwordSalt;
             CreatePasswordHash(password, out passwordHash, out passwordSalt);
 
-            user.PasswordHash = passwordHash;
-            user.PasswordSalt = passwordSalt;
+            // user.PasswordHash = passwordHash;
+            // user.PasswordSalt = passwordSalt;
 
             await context.Users.AddAsync(user);
             await context.SaveChangesAsync();
@@ -65,9 +65,9 @@ namespace DatingApp.API.Data
            }
         }
 
-        public async Task<bool> UserExists(string userName)
+        public async Task<bool> UserExists(string username)
         {
-            if (await context.Users.AnyAsync(x => x.Username == userName))
+            if (await context.Users.AnyAsync(x => x.UserName == username))
                 return true;
 
             return  false;

@@ -31,9 +31,14 @@ namespace DatingApp.API.Data
             return await this.context.SaveChangesAsync() > 0;
         }
 
-        public async Task<User> GetUser(int userId)
+        public async Task<User> GetUser(int userId, bool isCurrentUser)
         {
-            return await this.context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            var query =  this.context.Users.Include(p => p.Photos).AsQueryable();
+
+            if (isCurrentUser)
+                query = query.IgnoreQueryFilters();
+
+            return await query.FirstOrDefaultAsync(u => u.Id == userId);
         }
 
         public async Task<PagedList<User>> GetUsers(UserParams userParams)
@@ -82,7 +87,8 @@ namespace DatingApp.API.Data
 
         public async Task<Photo> GetPhoto(int photoId)
         {
-            return await this.context.Photos.FirstOrDefaultAsync(p => p.Id == photoId);
+            return await this.context.Photos.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(p => p.Id == photoId);
         }
 
         public async Task<Photo> GetMainPhotoForUser(int userId)
